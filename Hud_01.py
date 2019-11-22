@@ -1,10 +1,10 @@
-import HudInfo
+import Logger
 from tkinter import *
 from tkinter import ttk
 
 
 def update():
-    info = HudInfo.getHudInfo()
+    info = Logger.getHudInfo()
     ttk.Label(mainframe, text=info[0]).grid(column=1, row=2)
     ttk.Label(mainframe, text=info[1]).grid(column=2, row=2)
     ttk.Label(mainframe, text=info[2]).grid(column=3, row=2)
