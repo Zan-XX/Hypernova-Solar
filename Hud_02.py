@@ -5,10 +5,11 @@ from tkinter import ttk
 
 
 def canSend():
-    from can import Message
-    Message(data=[canMsg.get()])
-    info = Logger.getHudInfo()
-    Logger.log(info[0], info[1], info[2], info[3], canMsg.get())
+    bus=can.interface.Bus(channel='can0', bustype='socketcan_native')
+    msg = can.Message(arbitration_id=0x7de, data=[canMsg.get()])
+    bus.send(msg)
+#    info = Logger.getHudInfo()
+#    Logger.log(info[0], info[1], info[2], info[3], canMsg.get())
 
 
 def update():

@@ -37,12 +37,4 @@ def getHudInfo():
     return info
 
 
-def canSend(temp):
-    from can import Message
-    Message(data=[temp])
-    info = getHudInfo()
-    log(info[0], info[1], info[2], info[3], temp)
-
-
-log('60', '100', '90', '92', '12')
 log('55', '99', '95', '96', '22')
