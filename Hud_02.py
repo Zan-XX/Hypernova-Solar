@@ -4,11 +4,11 @@ from tkinter import *
 from tkinter import ttk
 
 
-def canSend(temp):
+def canSend():
     from can import Message
-    Message(data=[temp])
+    Message(data=[canMsg.get()])
     info = Logger.getHudInfo()
-    Logger.log(info[0], info[1], info[2], info[3], temp)
+    Logger.log(info[0], info[1], info[2], info[3], canMsg.get())
 
 
 def update():
@@ -22,8 +22,8 @@ def update():
     root.after(300, update)
 
 
-canMsg = IntVar()
 root = Tk()
+canMsg = IntVar()
 root.title('Hud')
 mainframe = ttk.Frame(root, padding='3 3 12 12')
 mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
@@ -34,10 +34,11 @@ ttk.Label(mainframe, text='Battery').grid(column=2, row=1)
 ttk.Label(mainframe, text='Temp 1').grid(column=3, row=1)
 ttk.Label(mainframe, text='Temp 2').grid(column=4, row=1)
 ttk.Label(mainframe, text='Test').grid(column=1, row=3)
-ttk.Label(mainframe, text='only int\'s').grid(column=1, row=4)
+ttk.Label(mainframe, text='only int\'s').grid(column=2, row=3)
+ttk.Label(mainframe, text='output').grid(column=4, row=3)
 ttk.Label(mainframe, text='CAN Message').grid(column=1, row=4)
 ttk.Entry(mainframe, textvariable=canMsg).grid(column=2, row=4)
-ttk.Button(mainframe, text='send', command=canSend(canMsg.get())).grid(column=3, row=4)
+ttk.Button(mainframe, text='send', command=canSend).grid(column=3, row=4)
 for child in mainframe.winfo_children():
     child.grid_configure(padx=20, pady=5)
 update()
