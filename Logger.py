@@ -4,8 +4,8 @@ from datetime import *
 logging.basicConfig(filename='Hud.log', filemode='a+', format='%(asctime)s - %(message)s', datefmt='%b/%d/%y %H:%M:%S')
 
 
-def log(speed, charge, temp1, temp2):
-    logRow = 'Speed: ' + speed + ' Charge: ' + charge + ' Temp1: ' + temp1 + ' Temp2: ' + temp2 + ' '
+def log(speed, charge, temp1, temp2, testInt):
+    logRow = 'Speed: ' + speed + ' Charge: ' + charge + ' Temp1: ' + temp1 + ' Temp2: ' + temp2 + ' TestInt: ' + str(testInt) + ' '
     logging.error('%s', logRow)
 
 
@@ -21,10 +21,11 @@ def getHudInfo():
     f = open('Hud.log', 'r')
     f1 = f.readlines()
     line = f1[-1].split(' ')
-    info.append(line[4] + ' MPH')
-    info.append(line[6] + '%')
-    info.append(line[8] + u'\u00b0F')
-    info.append(line[10] + u'\u00b0F')
+    info.append(line[4])
+    info.append(line[6])
+    info.append(line[8])
+    info.append(line[10])
+    info.append(line[12])
 
     for dLine in f1:
         top = dLine.split('-')
@@ -36,5 +37,12 @@ def getHudInfo():
     return info
 
 
-for i in range(2):
-    log('60', '100', '90', '92')
+def canSend(temp):
+    from can import Message
+    Message(data=[temp])
+    info = getHudInfo()
+    log(info[0], info[1], info[2], info[3], temp)
+
+
+log('60', '100', '90', '92', '12')
+log('55', '99', '95', '96', '22')
