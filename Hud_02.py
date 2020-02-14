@@ -2,10 +2,10 @@ import can
 import Logger
 from tkinter import *
 from tkinter import ttk
+bus = can.interface.Bus(channel='can0', bustype='socketcan_native')
 
 
 def canSend():
-    bus=can.interface.Bus(channel='can0', bustype='socketcan_native')
     msg = can.Message(arbitration_id=0x7de, data=[canMsg.get()])
     bus.send(msg)
 #    info = Logger.getHudInfo()
@@ -13,8 +13,9 @@ def canSend():
 
 
 def update():
-    can.CanutilsLogWriter('Hud.log', channel='vcan0', append=True)
+    message = bus.recv()
     info = Logger.getHudInfo()
+    Logger.log(info[0], info[1], info[2], info[3], message.arbitration_id)
     ttk.Label(mainframe, text=info[0] + ' MPH').grid(column=1, row=2)
     ttk.Label(mainframe, text=info[1] + '%').grid(column=2, row=2)
     ttk.Label(mainframe, text=info[2] + u'\u00b0F').grid(column=3, row=2)
