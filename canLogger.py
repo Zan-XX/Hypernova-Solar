@@ -4,8 +4,8 @@ from datetime import *
 logging.basicConfig(filename='Hud.log', filemode='a+', format='%(asctime)s - %(message)s', datefmt='%b/%d/%y %H:%M:%S')
 
 
-def log(speed, charge, temp1, temp2, testInt):
-    logRow = 'Speed: ' + speed + ' Charge: ' + charge + ' Temp1: ' + temp1 + ' Temp2: ' + temp2 + ' TestInt: ' + str(testInt) + ' '
+def log(data):
+    logRow = 'TestInt: ' + str(data) + ' '
     logging.error('%s', logRow)
 
 
@@ -22,10 +22,6 @@ def getHudInfo():
     f1 = f.readlines()
     line = f1[-1].split(' ')
     info.append(line[4])
-    info.append(line[6])
-    info.append(line[8])
-    info.append(line[10])
-    info.append(line[12])
 
     for dLine in f1:
         top = dLine.split('-')
@@ -37,4 +33,4 @@ def getHudInfo():
     return info
 
 
-log('55', '99', '95', '96', '22')
+log('22')
