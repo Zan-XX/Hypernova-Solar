@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.8
+
 import can
 import logging
 from datetime import *
