@@ -2,3 +2,5 @@
 raspberry pi/.idea/inspectionProfiles/Project_Default.xml
 *.xml
 raspberry pi/.idea/raspberry pi.iml
+raspberry pi/Hud.log
+*.pyc
