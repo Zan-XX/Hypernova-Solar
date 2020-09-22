@@ -1,2 +1,4 @@
 raspberry pi/.idea/
+__pycache__
+Hud.log
 *.xml
