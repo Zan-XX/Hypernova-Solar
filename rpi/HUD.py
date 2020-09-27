@@ -1,10 +1,12 @@
 #!/usr/bin/python3
-#Python 3.7.3
+# Python 3.7.3
 
 from tkinter import Tk, Label, Button, StringVar
 import can
+import canInterface
 
 bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate='500000')
+
 
 class CAN:
 	def __init__(self, master):
