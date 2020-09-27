@@ -1,4 +1,4 @@
 *.xml
 .idea
-*Hud.log
 *.pyc
+*.log
