@@ -3,6 +3,7 @@
 
 from tkinter import Tk, Label, Button, StringVar
 import can
+import canInterface
 
 bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate='500000')
 
@@ -37,8 +38,10 @@ class CAN:
     num = int.from_bytes(data, byteorder)
     if can_id == 0x102:
       self.temp1_text.set("%02.1f", num / 10)
+      canInterface.log("temp1", num / 10)   #logs without formatting
     elif can_id == 0x104:
       self.int_text.set("%03d" % num)
+      canInterface.log("int text", num)     #logs without formatting
 
 root = Tk()
 can = CAN(root)
