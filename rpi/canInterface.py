@@ -5,19 +5,22 @@ from datetime import *
 logging.basicConfig(filename='Hud.log', filemode='a+', format='%(asctime)s - %(message)s', datefmt='%b/%d/%y %H:%M:%S')
 
 
-def log(tag, data):                  #Function to log "tag: data" to file
+def log(tag, data):
+    """Takes a tag and the data to log, prints as 'tag: data'"""
     row = tag+': ' + str(data) + ' '
     logging.info(row)
 
 
-def clearLine():                #Function to clear old log entries
+def clearLine():
+    """Clears log entry's that are over an hour old"""
     with open('Hud.log', 'r') as x:
         data = x.read().splitlines(True)
     with open('Hud.log', 'w') as z:
         z.writelines(data[1:])
 
 
-def getHudInfo():               #Reads in data from log to display to hud gui
+def getInfo():
+    """Returns data from the log in the form of a list\nMAY NOT WORK, CURRENTLY UNUSED"""
     info = []
     f = open('Hud.log', 'r')
     f1 = f.readlines()
