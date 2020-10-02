@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 
-from tkinter import Tk, Frame, Button, Canvas, Scale
-from tkinter.constants import LAST
+from tkinter import Tk, Frame, Button, Canvas, Scale, IntVar
+from tkinter.constants import LAST, HORIZONTAL
 from math import sin, cos, pi
 
 
@@ -17,24 +17,33 @@ class Gauge(Canvas):
 
     def __init__(self, master, ticks, **kw):
 
+        # Discard passed height, height will always be half the width
         if "height" in kw:
             del kw["height"]
 
+        # If no width is passed, default to 200
         if "width" not in kw:
             kw["width"] = 200
 
-        width = kw["width"]
-        height = width / 2
+        # If no IntVar is passed, create an empty one
+        if "variable" in kw:
+            self.var = kw["variable"]
+            del kw["variable"]
+        else:
+            self.var = IntVar()
+
+        self.width = kw["width"]
+        self.height = self.width / 2
 
         # Create Canvas for Gauge
-        super().__init__(master, height=height, highlightthickness=0, **kw)
+        super().__init__(master, height=self.height, highlightthickness=0, **kw)
 
         # Create Gauge Outline Arc
         self.outline = self.create_arc(
             0,
             0,
-            width,
-            height * 2,
+            self.width,
+            self.height * 2,
             start=0,
             extent=180,
             fill="white",
@@ -45,21 +54,35 @@ class Gauge(Canvas):
             for i in range(ticks):
                 a = (i + 1) / (ticks + 1)
                 self.create_line(
-                    width / 2 + width / 2 * cos(pi * (a + 1)),
-                    height + height * sin(pi * (a + 1)),
-                    width / 2 + (width / 2 * cos(pi * (a + 1))) * 0.90,
-                    height + (height * sin(pi * (a + 1))) * 0.90,
+                    self.width / 2 + self.width / 2 * cos(pi * (a + 1)),
+                    self.height + self.height * sin(pi * (a + 1)),
+                    self.width / 2 + (self.width / 2 * cos(pi * (a + 1))) * 0.90,
+                    self.height + (self.height * sin(pi * (a + 1))) * 0.90,
                 )
 
         # Create Gauge Pointer
         self.arrow = self.create_line(
-            width / 2,
-            height,
+            self.width / 2,
+            self.height,
             0,
-            height,
+            self.height,
             arrow=LAST,
             arrowshape=(16, 20, 6),
             width=15,
+        )
+
+        # Update Pointer on IntVar()
+        self.var.trace_add('write', self.updateArrow)
+
+    # Update pointer position
+    def updateArrow(self, name1, name2, op):
+        a = self.var.get() / 100
+        self.coords(
+            self.arrow,
+            self.width / 2,
+            self.height,
+            self.width / 2 + self.width / 2 * cos(pi * (a + 1)),
+            self.height + self.height * sin(pi * (a + 1)),
         )
 
 
@@ -67,9 +90,13 @@ class Gauge(Canvas):
 if __name__ == "__main__":
     root = Tk()
 
+    value = IntVar()
+
     for x in range(100, 500, 100):
-        d = Gauge(root, 10, width=x)
+        d = Gauge(root, 10, width=x, variable=value)
         d.pack(pady=10)
+    scale = Scale(root, variable=value, orient=HORIZONTAL)
+    scale.pack()
 
     root.update()
     root.minsize(root.winfo_width(), root.winfo_height())
