@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 
 
-from tkinter import Tk, Frame, Button, Canvas, Scale, IntVar
-from tkinter.constants import LAST, HORIZONTAL
+from tkinter import Tk, Frame, Canvas, IntVar
+from tkinter.constants import LAST 
 from math import sin, cos, pi
 
 
 class Gauge(Canvas):
     """
-    Gauge display
-
-    :param master: Tk parent object (e.g. root)
-    :param ticks: Number of ticks on gauge
-    :type ticks: int
+    Gauge display using Tk.Canvas
     """
 
-    def __init__(self, master, ticks, **kw):
+    def __init__(self, master, ticks, max, **kw):
+        """
+        Create new Gauge instance
+
+        :param master: Tk parent object (e.g. root)
+        :param ticks: Number of ticks on gauge
+        :type ticks: int
+        :param max: Max value on gauge
+        :type max: int
+        """
 
         # Discard passed height, height will always be half the width
         if "height" in kw:
@@ -34,6 +39,7 @@ class Gauge(Canvas):
 
         self.width = kw["width"]
         self.height = self.width / 2
+        self.max = max
 
         # Create Canvas for Gauge
         super().__init__(master, height=self.height, highlightthickness=0, **kw)
@@ -59,6 +65,12 @@ class Gauge(Canvas):
                     self.width / 2 + (self.width / 2 * cos(pi * (a + 1))) * 0.90,
                     self.height + (self.height * sin(pi * (a + 1))) * 0.90,
                 )
+                self.create_text(
+                    self.width / 2 + (self.width / 2 * cos(pi * (a + 1))) * 0.80,
+                    self.height + (self.height * sin(pi * (a + 1))) * 0.80,
+                    text=str(int(a * max)),
+                    font=("", int(20 * (self.width / 400))),
+                )
 
         # Create Gauge Pointer
         self.arrow = self.create_line(
@@ -72,11 +84,11 @@ class Gauge(Canvas):
         )
 
         # Update Pointer on IntVar()
-        self.var.trace_add('write', self.updateArrow)
+        self.var.trace_add("write", self.updateArrow)
 
     # Update pointer position
     def updateArrow(self, name1, name2, op):
-        a = self.var.get() / 100
+        a = self.var.get() / self.max
         self.coords(
             self.arrow,
             self.width / 2,
@@ -88,15 +100,40 @@ class Gauge(Canvas):
 
 # Example code (will not run if imported)
 if __name__ == "__main__":
+    from tkinter import Frame, Scale
+    from tkinter.constants import HORIZONTAL, LEFT, X, RIDGE
+    
     root = Tk()
 
-    value = IntVar()
+    # Create left frame with a RIDGE border
+    frame1 = Frame(root, bd=4, relief=RIDGE)
+    frame1.pack(side=LEFT)
 
+    # Iterate through widths and create 4 different gauges with the same variable
+    value = IntVar()
     for x in range(100, 500, 100):
-        d = Gauge(root, 10, width=x, variable=value)
+        d = Gauge(frame1, 9, 100, width=x, variable=value)
         d.pack(pady=10)
-    scale = Scale(root, variable=value, orient=HORIZONTAL)
-    scale.pack()
+    scale = Scale(frame1, variable=value, orient=HORIZONTAL)
+    scale.pack(fill=X)
+
+    # Create right frame with RIDGE border
+    frame2 = Frame(root, bd=4, relief=RIDGE)
+    frame2.pack(side=LEFT)
+
+    # Create gauge and slider in right frame with max value of 200
+    value2 = IntVar()
+    gauge2 = Gauge(frame2, 9, 200, width=400, variable=value2)
+    gauge2.pack()
+    scale2 = Scale(frame2, variable=value2, orient=HORIZONTAL, to=200)
+    scale2.pack(fill=X)
+
+    # Create gauge and slider in right frame with max value of 50
+    value3 = IntVar()
+    gauge3 = Gauge(frame2, 9, 50, width=400, variable=value3)
+    gauge3.pack()
+    scale3 = Scale(frame2, variable=value3, orient=HORIZONTAL, to=50)
+    scale3.pack(fill=X)
 
     root.update()
     root.minsize(root.winfo_width(), root.winfo_height())
