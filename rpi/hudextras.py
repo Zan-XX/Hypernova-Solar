@@ -2,7 +2,7 @@
 
 
 from tkinter import Tk, Frame, Canvas, IntVar
-from tkinter.constants import LAST 
+from tkinter.constants import LAST, SW, SE
 from math import sin, cos, pi
 
 
@@ -98,11 +98,111 @@ class Gauge(Canvas):
         )
 
 
+class Battery(Canvas):
+    """
+    Create new Battery instance
+
+    :param master: Tk parent object (e.g. root)
+    :param warning: level at which bar will turn yellow
+    :type warning: int
+    :param low: level at which bar will turn red
+    :type low: int
+    """
+
+    def __init__(self, master, warning, low, **kw):
+        """
+        docstring
+        """
+        if not (0 < warning < 100):
+            raise ValueError("warning must be between 0 and 100")
+
+        if not (0 < low < 100):
+            raise ValueError("low must be between 0 and 100")
+
+        if warning <= low:
+            raise ValueError("warning value must be greater than low")
+
+        self.warning = warning
+        self.low = low
+
+        # Discard passed height, height will always be half the width
+        if "height" in kw:
+            del kw["height"]
+
+        # If no width is passed, default to 200
+        if "width" not in kw:
+            kw["width"] = 200
+
+        # If no IntVar is passed, create an empty one
+        if "variable" in kw:
+            self.var = kw["variable"]
+            del kw["variable"]
+        else:
+            self.var = IntVar()
+
+        self.width = kw["width"]
+        self.height = self.width / 2
+
+        super().__init__(master, height=self.height, highlightthickness=0, **kw)
+
+        # Battery filling
+        self.fill = self.create_rectangle(
+            0,
+            self.height / 3,
+            self.width,
+            self.height - 4,
+            fill="green",
+            outline="",
+        )
+
+        # Battery Outline
+        self.outline = self.create_rectangle(
+            2, self.height / 3, self.width - 2, self.height - 4, width=4
+        )
+
+        # Minimum text
+        self.create_text(
+            2,
+            self.height / 3,
+            anchor=SW,
+            text=0,
+            font=("", int(40 * (self.width / 400))),
+        )
+
+        # Maximum text
+        self.create_text(
+            self.width,
+            self.height / 3,
+            anchor=SE,
+            text=100,
+            font=("", int(40 * (self.width / 400))),
+        )
+
+        self.var.trace_add("write", self.updateLevel)
+
+    def updateLevel(self, name1, name2, op):
+        """
+        docstring
+        """
+        a = self.var.get()
+
+        # Change Color based on level
+        if a <= self.low:
+            self.itemconfigure(self.fill, fill="red")
+        elif a <= self.warning:
+            self.itemconfigure(self.fill, fill="goldenrod")
+        else:
+            self.itemconfigure(self.fill, fill="green")
+
+        a /= 100
+        self.coords(self.fill, 0, self.height / 3, self.width * a, self.height - 4)
+
+
 # Example code (will not run if imported)
 if __name__ == "__main__":
     from tkinter import Frame, Scale
     from tkinter.constants import HORIZONTAL, LEFT, X, RIDGE
-    
+
     root = Tk()
 
     # Create left frame with a RIDGE border
@@ -130,10 +230,22 @@ if __name__ == "__main__":
 
     # Create gauge and slider in right frame with max value of 50
     value3 = IntVar()
+    
     gauge3 = Gauge(frame2, 9, 50, width=400, variable=value3)
     gauge3.pack()
+    
     scale3 = Scale(frame2, variable=value3, orient=HORIZONTAL, to=50)
     scale3.pack(fill=X)
+
+    # Create Battery in root frame with slider
+    value4 = IntVar()
+    
+    battery = Battery(root, 50, 25, width=400, variable=value4)
+    battery.pack()
+    
+    scale4 = Scale(root, variable=value4, orient=HORIZONTAL)
+    scale4.pack(fill=X)
+
 
     root.update()
     root.minsize(root.winfo_width(), root.winfo_height())
