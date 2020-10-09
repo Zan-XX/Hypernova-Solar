@@ -7,8 +7,10 @@ import can
 import canInterface
 
 bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate='500000')
-timeout = OrderedDict([(0x102, 0),  	# ordered dictionary to count missed packets for each sensor
-                       (0x104, 0)])     # (can_id, number missed)
+timeout = {     # ordered dictionary to count missed packets for each sensor
+    0x102: 0,  	# (can_id, number missed)
+    0x104: 0
+}
 
 
 class CAN:
@@ -44,7 +46,7 @@ class CAN:
         num = int.from_bytes(data, byteorder)
         if can_id == 0x102:
             if timeout[can_id] > 5:
-                self.temp1_text.set("")
+                self.temp1_text.set("---")
                 return
             self.temp1_text.set("%02.1f" % (num / 10))
             print('updated temp')
