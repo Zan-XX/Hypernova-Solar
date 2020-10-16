@@ -55,6 +55,7 @@ class CAN:
                 return
             self.int_text.set("%03d" % num)
             print('updated int')
+        timeout[can_id] = 0
 
 
 def refresh():
@@ -64,10 +65,10 @@ def refresh():
         if msg is None:
             print('break')
             break
+        for i in timeout:
+            timeout[can_id] += 1
         print(int.from_bytes(msg.data, byteorder='big'))
         can.update_field(msg.data, msg.arbitration_id)
-        if False:               # TODO: add way to detect missed packet
-            timeout[can_id] += 1
     root.after(500, refresh)
 
 
