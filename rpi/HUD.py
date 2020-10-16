@@ -2,7 +2,6 @@
 # Python 3.7.3
 
 from tkinter import Tk, Label, Button, StringVar
-from collections import OrderedDict
 import can
 import canInterface
 
@@ -67,6 +66,8 @@ def refresh():
             break
         print(int.from_bytes(msg.data, byteorder='big'))
         can.update_field(msg.data, msg.arbitration_id)
+        if False:               # TODO: add way to detect missed packet
+            timeout[can_id] += 1
     root.after(500, refresh)
 
 
