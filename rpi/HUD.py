@@ -2,8 +2,9 @@
 # Python 3.7.3
 
 from tkinter import Tk, Label, Button, StringVar
+
 import can
-import canInterface
+import logger as log
 
 bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate='500000')
 timeout = {     # ordered dictionary to count missed packets for each sensor
@@ -16,7 +17,7 @@ class CAN:
     def __init__(self, master):
         self.master = master
 
-        # Make window fullscreen 
+        # Make window fullscreen
         # master.attributes('-fullscreen', True) #Start in fullscreen with no borders
 
         # Column 0
@@ -44,18 +45,23 @@ class CAN:
     def update_field(self, data, can_id, byteorder='big'):  # Update field based on CAN ID
         num = int.from_bytes(data, byteorder)
         if can_id == 0x102:
-            if timeout[can_id] > 5:
-                self.temp1_text.set("---")
-                return
             self.temp1_text.set("%02.1f" % (num / 10))
-            print('updated temp')
+            timeout[can_id] = 0
+            log.log("temp1", "%02.1f" % (num / 10))
         elif can_id == 0x104:
-            if timeout[can_id] > 5:
-                self.int_text.set("---")
-                return
             self.int_text.set("%03d" % num)
-            print('updated int')
-        timeout[can_id] = 0
+            timeout[can_id] = 0
+            log.log("int_text", "%03d" % num)
+
+    def check_timeout(self):     # Checks to see if a sensor timed out and if it does set it as "---"
+        for i in timeout:
+            timeout[i] += 1
+        if timeout[0x102] > 5:
+            self.temp1_text.set("---")
+            log.log("temp1", "--- Not Responding ---")
+        elif timeout[0x104] > 5:
+            self.int_text.set("---")
+            log.log("int_text", "--- Not Responding ---")
 
 
 def refresh():
@@ -65,10 +71,10 @@ def refresh():
         if msg is None:
             print('break')
             break
-        for i in timeout:
-            timeout[can_id] += 1
         print(int.from_bytes(msg.data, byteorder='big'))
         can.update_field(msg.data, msg.arbitration_id)
+        can.check_timeout()
+        log.clearOld()
     root.after(500, refresh)
 
 
