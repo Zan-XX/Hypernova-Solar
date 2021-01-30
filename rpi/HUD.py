@@ -2,19 +2,18 @@
 # Python 3.7.3
 
 from tkinter import Tk, Label, Button, StringVar
-import can
 import logger as log
-from switch import Switch
-
-
+import can
+# Config
 bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate='500000')
-timeout = {     # ordered dictionary to count missed packets for each sensor
+timeout = {     # dictionary to count missed packets for each sensor
     0x102: 0,  	# (can_id, number missed)
     0x104: 0
 }
 
 
-class CAN:
+# GUI
+class GUI:
     def __init__(self, master):
         self.master = master
 
@@ -43,31 +42,34 @@ class CAN:
         self.exit = Button(master, text="Quit", command=master.destroy)
         self.exit.grid(row=0, column=2)
 
-    def update_field(self, data, can_id, byteorder='big'):  # Update field based on CAN ID
-        num = int.from_bytes(data, byteorder)
-        with Switch(can_id) as case:
 
-            if case(0x102):
-                self.temp1_text.set("%02.1f" % (num / 10))
-                timeout[can_id] = 0
-                log.log("temp1", "%02.1f" % (num / 10))
+# CAN Logic
+def update_field(self, data, can_id, byteorder='big'):  # Processes data based on can_id
+    num = int.from_bytes(data, byteorder)
 
-            if case(0x104):
-                self.int_text.set("%03d" % num)
-                timeout[can_id] = 0
-                log.log("int_text", "%03d" % num)
+    if can_id == 0x102:                             # checks message CAN id
+        self.temp1_text.set("%02.1f" % (num / 10))  # logic based on the can type of message and/or data processing
+        timeout[can_id] = 0                         # reset timeout
+        log.log("temp1", "%02.1f" % (num / 10))     # log data
 
-    def check_timeout(self):     # Checks to see if a sensor timed out and if it does set it as "---"
-        for i in timeout:
-            timeout[i] += 1
-        if timeout[0x102] > 5:
-            self.temp1_text.set("---")
-            log.log("temp1", "--- Not Responding ---")
-        elif timeout[0x104] > 5:
-            self.int_text.set("---")
-            log.log("int_text", "--- Not Responding ---")
+    if can_id == 0x104:
+        self.int_text.set("%03d" % num)
+        timeout[can_id] = 0
+        log.log("int_text", "%03d" % num)
 
 
+def check_timeout(self):     # Checks to see if a sensor timed out and if it does set it as "---"
+    for i in timeout:
+        timeout[i] += 1
+    if timeout[0x102] > 5:
+        self.temp1_text.set("---")
+        log.log("temp1", "--- Not Responding ---")
+    elif timeout[0x104] > 5:
+        self.int_text.set("---")
+        log.log("int_text", "--- Not Responding ---")
+
+
+# refresh can messages and HUD
 def refresh():
     print('--------------')
     while True:
@@ -79,11 +81,11 @@ def refresh():
         can.update_field(msg.data, msg.arbitration_id)
         can.check_timeout()
         log.clearOld()
-    root.after(500, refresh)
+    root.after(100, refresh)
 
 
 root = Tk()
-can = CAN(root)
+can = GUI(root)
 root.after_idle(refresh)
 
 root.mainloop()

@@ -3,6 +3,7 @@
 import logging
 from datetime import *
 logging.basicConfig(filename='Hud.log', filemode='a+', format='%(asctime)s - %(message)s', datefmt='%b/%d/%y %H:%M:%S')
+keepInMinutes = 20
 
 
 def log(tag, data):
@@ -12,14 +13,14 @@ def log(tag, data):
 
 
 def clearOld():
-    """Clears log entry's that are over an hour old"""
+    """Clears log entry's that are over keepInMinutes old"""
     f = open('Hud.log', 'r')
     f1 = f.readlines()
     line = f1[-1].split(' ')
     for dLine in f1:
         top = dLine.split('-')
         now = datetime.strptime(top[0], '%b/%d/%y %H:%M:%S ')
-        if now < datetime.now() - timedelta(hours=1):
+        if now < datetime.now() - timedelta(minutes=keepInMinutes):
             with open('Hud.log', 'r') as x:
                 data = x.read().splitlines(True)
             with open('Hud.log', 'w') as z:
