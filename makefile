@@ -6,7 +6,6 @@ all:
 	git commit -m "$name"
 	git push -u https://github.com/maxsyrett/Hypernova-Solar.git master
 
-
 getstarted:
 	pip3 install tk
 	pip3 install python-can
