@@ -5,7 +5,7 @@ from tkinter import Tk, Label, Button, StringVar
 import logger as log
 import can
 # Config
-bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate='500000')
+bus = can.interface.Bus(bustype='virtual', channel='can0', bitrate='500000')
 timeout = {     # dictionary to count missed packets for each sensor
     0x102: 0,  	# (can_id, number missed)
     0x104: 0
