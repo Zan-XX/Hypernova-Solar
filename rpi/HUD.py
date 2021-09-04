@@ -1,13 +1,14 @@
-#!/usr/bin/python3
+# usr bin python3
 # Python 3.7.3
 
 from tkinter import Tk, Label, Button, StringVar
 import logger as log
 import can
+
 # Config
 bus = can.interface.Bus(bustype='virtual', channel='can0', bitrate='500000')
-timeout = {     # dictionary to count missed packets for each sensor
-    0x102: 0,  	# (can_id, number missed)
+timeout = {  # dictionary to count missed packets for each sensor
+    0x102: 0,  # (can_id, number missed)
     0x104: 0
 }
 
@@ -47,10 +48,10 @@ class GUI:
 def update_field(self, data, can_id, byteorder='big'):  # Processes data based on can_id
     num = int.from_bytes(data, byteorder)
 
-    if can_id == 0x102:                             # checks message CAN id
+    if can_id == 0x102:  # checks message CAN id
         self.temp1_text.set("%02.1f" % (num / 10))  # logic based on the can type of message and/or data processing
-        timeout[can_id] = 0                         # reset timeout
-        log.log("temp1", "%02.1f" % (num / 10))     # log data
+        timeout[can_id] = 0  # reset timeout
+        log.log("temp1", "%02.1f" % (num / 10))  # log data
 
     if can_id == 0x104:
         self.int_text.set("%03d" % num)
@@ -58,7 +59,7 @@ def update_field(self, data, can_id, byteorder='big'):  # Processes data based o
         log.log("int_text", "%03d" % num)
 
 
-def check_timeout(self):     # Checks to see if a sensor timed out and if it does set it as "---"
+def check_timeout(self):  # Checks to see if a sensor timed out and if it does set it as "---"
     for i in timeout:
         timeout[i] += 1
     if timeout[0x102] > 5:
