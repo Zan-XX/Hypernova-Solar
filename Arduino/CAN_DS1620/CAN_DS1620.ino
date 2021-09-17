@@ -1,14 +1,15 @@
 //Reads data from a DS1620+ temperature sensor and sends it over the CAN bus
+//URL for DS1620.h https://github.com/msparks/arduino-ds1620
 extern "C"{
-  #include <conv.h>
+  #include "conv.h"
 };
 
-#include <mcp_can.h>
-#include <mcp_can_dfs.h>
+#include "mcp_can.hpp"
+#include "mcp_can_dfs.h"
 
-#include <DS1620.h>
+#include "DS1620.h"
 
-#include <SPI.h>
+#include "SPI.h"
 
 static const uint8_t dq = 3;
 static const uint8_t clk = 4;
