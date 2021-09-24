@@ -8,7 +8,7 @@ extern "C"{
 MCP_CAN CAN0(10);
 
 void setup() {
-  CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ);
+  CAN0.begin(MCP_CAN(10), CAN_500KBPS, MCP_8MHZ);
   CAN0.setMode(MCP_NORMAL);
 }
 byte *data;

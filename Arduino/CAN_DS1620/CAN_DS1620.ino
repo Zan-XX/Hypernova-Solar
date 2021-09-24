@@ -25,7 +25,7 @@ void setup() {
   //DS1620+ setup
   ds1620.config();
   //MCP2515 setup
-  if (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
+  if (CAN0.begin(MCP_CAN(10), CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
     Serial.println("MCP2515 Initialized Successfully");
   } else {
     Serial.println("Error Initializing MCP2515...");

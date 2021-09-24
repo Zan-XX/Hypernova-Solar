@@ -48,6 +48,7 @@
 #define _MCP2515_H_
 
 #include "mcp_can_dfs.h"
+#include "SPI.h"
 
 #define MAX_CHAR_IN_MESSAGE 8
 
