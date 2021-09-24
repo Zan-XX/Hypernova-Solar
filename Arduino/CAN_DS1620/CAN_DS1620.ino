@@ -1,5 +1,6 @@
 //Reads data from a DS1620+ temperature sensor and sends it over the CAN bus
 //URL for DS1620.h https://github.com/msparks/arduino-ds1620
+//URL for SPI.h https://github.com/arduino/ArduinoCore-avr/blob/master/libraries/SPI/src/SPI.h
 extern "C"{
   #include "conv.h"
 };
