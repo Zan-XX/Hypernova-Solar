@@ -25,12 +25,12 @@ void setup() {
   //DS1620+ setup
   ds1620.config();
   //MCP2515 setup
-  if (CAN0.begin(MCP_CAN(10), CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
+  if (CAN0.begin(/*MCP_CAN(10), */CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
     Serial.println("MCP2515 Initialized Successfully");
   } else {
     Serial.println("Error Initializing MCP2515...");
   }
-  CAN0.setMode(MCP_NORMAL);
+  CAN0.setMode(MODE_NORMAL);
 }
 
 byte *data;
@@ -49,5 +49,12 @@ void loop() {
     Serial.println("Error Sending Message...");
   }
   
-  delay(100);
+  /*delay(100);*/
+  
+  for(int i = 0;i < 256;i++) {
+    data = intToByteArr(i);
+    CAN0.sendMsgBuf(0x104, 0, int_len, data);
+    delay(1000);
+  }
+  delay(1000);
 }
