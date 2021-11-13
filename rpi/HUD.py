@@ -20,28 +20,27 @@ temp_label_var = StringVar()
 def update_display(sensors):
 
     # If a sensor has not been heard from, report an error
-    if sensors[0x102].missed > 10:
+    if sensors[0x102]['missed'] > 10:
         temp_label_var.set("TEMPERATURE ERROR!")
+    else:
+        temp = int.from_bytes(sensors[0x102]['data'], 'big')
+        temp_label_var.set(f"Voltage 100V\nTemperature: {temp} C")
 
-    if sensors[0x104].missed > 10:
+    if sensors[0x104]['missed'] > 10:
         # TODO Add battery error action
         pass
+    else:
+        level = int.from_bytes(sensors[0x104]['data'], 'big')
+        batt_var.set(level)
 
-    if sensors[0x106].missed > 10:
+    if sensors[0x106]['missed'] > 10:
         mph_label_var.set("SPEED ERROR!")
         mph_var.set(0)
-
-    # Update tkinter variables with new data
-    temp = int.from_bytes(sensors[0x102].data, 'big')
-    temp_label_var.set(f"Temp: {temp} F")
-
-    level = int.from_bytes(sensors[0x104].data, 'big')
-    batt_var.set(level)
-
-    speed = int.from_bytes(sensors[0x106], 'big')
-    mph_var.set(speed)
-    mph_label_var.set(f"{speed} MPH")
-
+    else:
+        speed = int.from_bytes(sensors[0x106]['data'], 'big')
+        mph_var.set(speed)
+        mph_label_var.set(f"{speed} MPH")
+    
 
 # TODO Add proper sensor IDs
 
@@ -53,19 +52,19 @@ def can_handler():
     sensors = {
         # Temperature Sensor
         0x102: {
-            'data': 0,
+            'data': b'\x00',
             'missed': 0
         },
 
         # Battery Sensor
         0x104: {
-            'data': 0,
+            'data': b'\x00',
             'missed': 0
         },
 
         # Speed Sensor
         0x106: {
-            'data': 0,
+            'data': b'\x00',
             'missed': 0
         }
     }
@@ -80,25 +79,24 @@ def can_handler():
         # If the sensor is in the list
         if id in sensors:
             # Set that sensor missed count to 0
-            sensors[id].missed = 0
+            sensors[id]['missed'] = 0
         else:
             # Don't do anything else if it isn't in the list
             continue
 
         # Increase the missed count for all sensors by 1
         for i in sensors:
-            sensors[i].missed += 1
+            sensors[i]['missed'] += 1
 
         # Update the sensor data field in the dictionary
-        sensors[id].data = data
+        sensors[id]['data'] = data
 
         # Pass updates to tkinter
         update_display(sensors)
 
 
 # Start the can bus thread as a daemon so it is killed when the window is closed
-backend = threading.Thread(target=can_handler, daemon=True, )
-backend.start()
+backend = threading.Thread(target=can_handler, daemon=True, name='Backend Thread')
 
 
 # TODO Write button callback handlers
@@ -135,14 +133,13 @@ class GUI:
         frame.columnconfigure(1, weight=1)
 
         power = Battery(frame, 50, 25, width=400, variable=self.battery)
-        powerlabel = Label(
-            frame, text="Voltage 100 V\nTemperature: 30 C", font=Font(size=20))
+        powerlabel = Label(frame, font=Font(size=20), height=2, textvariable=temp_label_var)
 
         power.grid(column=0, row=0, padx=10, pady=10)
         powerlabel.grid(column=0, row=1)
 
         speed = Gauge(frame, 9, 100, width=400, variable=self.speed)
-        speedlabel = Label(frame, text="0 MPH", font=Font(size=40))
+        speedlabel = Label(frame, font=Font(size=40), textvariable=mph_label_var)
 
         speed.grid(column=1, row=0, padx=10, pady=10)
         speedlabel.grid(column=1, row=1)
@@ -171,22 +168,30 @@ class GUI:
 # Start app fullscreen
 # root.attributes('-fullscreen', True)
 
-
 interface = GUI(root, mph_var, batt_var)
-
-# Recursively makes all backgrounds of frames green and widgets red for tkinter debugging
-# def debugcolor(top):
-#     for i in top.winfo_children():
-#         if type(i) is Frame:
-#             i.configure(bg="green")
-#             debugcolor(i)
-#         else:
-#             i.configure(bg="red")
-
-# debugcolor(root)
 
 # Force minimum window size once widgets are laid out
 root.update()
 root.minsize(root.winfo_width(), root.winfo_height())
+
+# Start backend thread after tkinter window starts
+root.after_idle(backend.start)
+
+#region ----------------TESTING FUNCTIONS-----------------
+import testing
+
+# TESTING: Start thread that provides test data over virtual can bus
+testdata = testing.TestingThread(can.Bus('can0', bustype='virtual', bitrate=500000))
+testdata.start()
+
+# TESTING: Simulate errors on various arbitration IDs
+root.after(5000, testdata.simulate_error, 0x102)
+root.after(10000, testdata.simulate_error, 0x104)
+root.after(15000, testdata.simulate_error, 0x106)
+
+# TESTING: Recursively makes all backgrounds of frames green and widgets red for tkinter debugging
+# testing.debug_color(root)
+
+#endregion -----------------------------------------------
 
 root.mainloop()
