@@ -1,4 +1,5 @@
 import threading
+from sys import argv
 from time import time
 from tkinter import *
 from tkinter.font import Font
@@ -12,6 +13,11 @@ mph_label_var = StringVar()
 
 batt_var = IntVar()
 temp_label_var = StringVar()
+
+bustype = "socketcan"
+
+if len(argv) > 1 and argv[1] == "debug":
+    bustype = "virtual"
 
 
 # TODO Rewrite this whole function its not that great
@@ -49,7 +55,7 @@ def update_display(sensors):
 
 def can_handler():
 
-    bus = can.Bus('can0', bustype='virtual', bitrate='500000')
+    bus = can.Bus('can0', bustype=bustype, bitrate='500000')
 
     # Dictionary for last data recieved and missed packet tally
     sensors = {
@@ -92,10 +98,6 @@ def can_handler():
 
         # Pass updates to tkinter
         update_display(sensors)
-
-
-# Start the can bus thread as a daemon so it is killed when the window is closed
-backend = threading.Thread(target=can_handler, daemon=True, name='Backend Thread')
 
 
 # TODO Write button callback handlers
@@ -173,23 +175,27 @@ interface = GUI(root, mph_var, batt_var)
 root.update()
 root.minsize(root.winfo_width(), root.winfo_height())
 
+# Start the can bus thread as a daemon so it is killed when the window is closed
+backend = threading.Thread(target=can_handler, daemon=True, name='Backend Thread')
+
 # Start backend thread after tkinter window starts
 root.after_idle(backend.start)
 
 #region ----------------TESTING FUNCTIONS-----------------
-import testing
+if len(argv) > 1 and argv[1] == "debug":
+    import testing
 
-# TESTING: Start thread that provides test data over virtual can bus
-testdata = testing.TestingThread(can.Bus('can0', bustype='virtual', bitrate=500000))
-testdata.start()
+    # TESTING: Start thread that provides test data over virtual can bus
+    testdata = testing.TestingThread(can.Bus('can0', bustype='virtual', bitrate=500000))
+    testdata.start()
 
-# TESTING: Simulate errors on various arbitration IDs
-root.after(5000, testdata.simulate_error, 0x102)
-root.after(10000, testdata.simulate_error, 0x104)
-root.after(15000, testdata.simulate_error, 0x106)
+    # TESTING: Simulate errors on various arbitration IDs
+    # root.after(5000, testdata.simulate_error, 0x102, 5)
+    # root.after(10000, testdata.simulate_error, 0x104, 5)
+    # root.after(15000, testdata.simulate_error, 0x106, 5)
 
-# TESTING: Recursively makes all backgrounds of frames green and widgets red for tkinter debugging
-# testing.debug_color(root)
+    # TESTING: Recursively makes all backgrounds of frames green and widgets red for tkinter debugging
+    # testing.debug_color(root)
 
 #endregion -----------------------------------------------
 
