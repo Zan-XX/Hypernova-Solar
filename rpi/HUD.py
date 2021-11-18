@@ -1,10 +1,48 @@
 import threading
-from sys import argv
+import argparse
 from time import time
 from tkinter import *
 from tkinter.font import Font
 import can
 from hudextras import Gauge, Battery
+
+parser = argparse.ArgumentParser(description="Hypernova Solar Car heads up display program")
+
+# Set possible arguments
+parser.add_argument(
+    "-d", "--debug", 
+    action="store_true",
+    help="start with debug console and example packets for testing"
+)
+
+parser.add_argument(
+    "-f", "--fullscreen",
+    action="store_true",
+    help="start in fullscreen"
+)
+
+parser.add_argument(
+    "device",
+    nargs="?",
+    default="can0",
+    help="can bus device name (default: can0)"
+)
+
+parser.add_argument(
+    "interface",
+    nargs='?',
+    default="socketcan",
+    choices=can.interfaces.VALID_INTERFACES,
+    metavar="interface",
+    help="can interface library to use (default: socketcan)"
+)
+
+config = parser.parse_args()
+
+# Change configuration if in debug mode
+if config.debug:
+    config.device = "can0"
+    config.interface = "virtual"
 
 root = Tk()
 
@@ -13,11 +51,6 @@ mph_label_var = StringVar()
 
 batt_var = IntVar()
 temp_label_var = StringVar()
-
-bustype = "socketcan"
-
-if len(argv) > 1 and argv[1] == "debug":
-    bustype = "virtual"
 
 
 # TODO Rewrite this whole function its not that great
@@ -55,7 +88,7 @@ def update_display(sensors):
 
 def can_handler():
 
-    bus = can.Bus('can0', bustype=bustype, bitrate='500000')
+    bus = can.Bus(config.device, bustype=config.interface, bitrate='500000')
 
     # Dictionary for last data recieved and missed packet tally
     sensors = {
@@ -167,7 +200,7 @@ class GUI:
         button4.grid(column=1, row=1, padx=10, pady=10, sticky=NSEW)
 
 # Start app fullscreen
-# root.attributes('-fullscreen', True)
+root.attributes('-fullscreen', config.fullscreen)
 
 interface = GUI(root, mph_var, batt_var)
 
@@ -182,11 +215,11 @@ backend = threading.Thread(target=can_handler, daemon=True, name='Backend Thread
 root.after_idle(backend.start)
 
 #region ----------------TESTING FUNCTIONS-----------------
-if len(argv) > 1 and argv[1] == "debug":
+if config.debug:
     import testing
 
     # TESTING: Start thread that provides test data over virtual can bus
-    testdata = testing.TestingThread(can.Bus('can0', bustype='virtual', bitrate=500000))
+    testdata = testing.TestingThread(can.Bus(config.device, bustype=config.interface, bitrate=500000))
     testdata.start()
 
     # TESTING: Simulate errors on various arbitration IDs
