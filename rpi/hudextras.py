@@ -2,7 +2,7 @@
 
 
 from tkinter import Tk, Frame, Canvas, IntVar
-from tkinter.constants import LAST, SW, SE
+from tkinter.constants import HIDDEN, LAST, NORMAL, SW, SE
 from math import sin, cos, pi
 
 
@@ -157,7 +157,11 @@ class Battery(Canvas):
 
         # Battery Outline
         self.outline = self.create_rectangle(
-            2, self.height / 3, self.width - 2, self.height - 4, width=4
+            2,
+            self.height / 3,
+            self.width - 2,
+            self.height - 4, 
+            width=4
         )
 
         # Minimum text
@@ -178,13 +182,33 @@ class Battery(Canvas):
             font=("", int(40 * (self.width / 400))),
         )
 
-        self.var.trace_add("write", self.updateLevel)
+        # Error text
+        self.error = self.create_text(
+            self.width / 2,
+            self.height * 2/3,
+            font=("", int(40 * (self.width / 400))),
+            text="ERROR",
+            state=HIDDEN
+        )
 
-    def updateLevel(self, name1, name2, op):
+        self.var.trace_add("write", self.__update_level)
+
+    def __update_level(self, name1, name2, op):
         """
-        docstring
+        Updates the battery to display the new variable value
         """
         a = self.var.get()
+
+        # Display error text if there is an error and return immediately
+        if a == -1:
+            self.coords(self.fill, 0, self.height / 3, self.width, self.height - 4)
+            self.itemconfigure(self.fill, fill = "red")
+            self.itemconfigure(self.error, state=NORMAL)
+            return
+
+        # Hide error text if visible
+        if self.itemcget(self.error, "state") == NORMAL:
+            self.itemconfigure(self.error, state=HIDDEN)
 
         # Change Color based on level
         if a <= self.low:
@@ -243,7 +267,7 @@ if __name__ == "__main__":
     battery = Battery(root, 50, 25, width=400, variable=value4)
     battery.pack()
     
-    scale4 = Scale(root, variable=value4, orient=HORIZONTAL)
+    scale4 = Scale(root, variable=value4, orient=HORIZONTAL, from_=-1)
     scale4.pack(fill=X)
 
 
