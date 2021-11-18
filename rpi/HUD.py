@@ -1,4 +1,5 @@
 import threading
+from time import time
 from tkinter import *
 from tkinter.font import Font
 import can
@@ -19,21 +20,23 @@ temp_label_var = StringVar()
 
 def update_display(sensors):
 
-    # If a sensor has not been heard from, report an error
-    if sensors[0x102]['missed'] > 10:
+    # Current time
+    curtime = int(time())
+
+    # If a sensor has not been heard in 3 seconds from, report an error
+    if curtime - sensors[0x102]['timestamp'] > 3:
         temp_label_var.set("TEMPERATURE ERROR!")
     else:
         temp = int.from_bytes(sensors[0x102]['data'], 'big')
         temp_label_var.set(f"Voltage 100V\nTemperature: {temp} C")
 
-    if sensors[0x104]['missed'] > 10:
-        # TODO Add battery error action
-        pass
+    if curtime - sensors[0x104]['timestamp'] > 3:
+        batt_var.set(-1)
     else:
         level = int.from_bytes(sensors[0x104]['data'], 'big')
         batt_var.set(level)
 
-    if sensors[0x106]['missed'] > 10:
+    if curtime - sensors[0x106]['timestamp'] > 3:
         mph_label_var.set("SPEED ERROR!")
         mph_var.set(0)
     else:
@@ -53,19 +56,19 @@ def can_handler():
         # Temperature Sensor
         0x102: {
             'data': b'\x00',
-            'missed': 0
+            'timestamp': 0
         },
 
         # Battery Sensor
         0x104: {
             'data': b'\x00',
-            'missed': 0
+            'timestamp': 0
         },
 
         # Speed Sensor
         0x106: {
             'data': b'\x00',
-            'missed': 0
+            'timestamp': 0
         }
     }
 
@@ -78,15 +81,11 @@ def can_handler():
 
         # If the sensor is in the list
         if id in sensors:
-            # Set that sensor missed count to 0
-            sensors[id]['missed'] = 0
+            # Set last packet timestamp
+            sensors[id]['timestamp'] = int(time())
         else:
             # Don't do anything else if it isn't in the list
             continue
-
-        # Increase the missed count for all sensors by 1
-        for i in sensors:
-            sensors[i]['missed'] += 1
 
         # Update the sensor data field in the dictionary
         sensors[id]['data'] = data
