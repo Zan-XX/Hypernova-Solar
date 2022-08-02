@@ -45,6 +45,7 @@ You should now be able to run commands on the Pi.
 
 # Battery Charger
 In order to charge the batteries, the BMS must be supplied with the required DC voltage and current. Our batteries are rated at a maximum 4.2 A charging current to charge a cell to a maximum of 4.2 V. For our 20S11P battery pack, the supply must be able to supply 46.2 A at 84 V.
+
 $I = 4.2 A \cdot 11 = 46.2 A$
 $V = 4.2 V \cdot 20 = 84 V$
 
